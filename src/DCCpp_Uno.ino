@@ -18,7 +18,7 @@ COPYRIGHT (c) 2013-2016 Gregg E. Berman
 
 **********************************************************************/
 /**********************************************************************
-      
+
 DCC++ BASE STATION is a C++ program written for the Arduino Uno and Arduino Mega
 using the Arduino IDE 1.6.6.
 
@@ -139,7 +139,7 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
 
   DCCpp_Uno:        declares required global objects and contains initial Arduino setup()
                     and Arduino loop() functions, as well as interrput code for OC0B and OC1B.
-                    Also includes declarations of optional array of Turn-Outs and optional array of Sensors 
+                    Also includes declarations of optional array of Turn-Outs and optional array of Sensors
 
   SerialCommand:    contains methods to read and interpret text commands from the serial line,
                     process those instructions, and, if necessary call appropriate Packet RegisterList methods
@@ -162,12 +162,12 @@ DCC++ BASE STATION in split into multiple modules, each with its own header file
   EEStore:          contains methods to store, update, and load various DCC settings and status
                     (e.g. the states of all defined turnouts) in the EEPROM for recall after power-up
 
-DCC++ BASE STATION is configured through the Config.h file that contains all user-definable parameters                    
+DCC++ BASE STATION is configured through the Config.h file that contains all user-definable parameters
 
 **********************************************************************/
 
 // BEGIN BY INCLUDING THE HEADER FILES FOR EACH MODULE
- 
+
 #include "DCCpp_Uno.h"
 #include "PacketRegister.h"
 #include "CurrentMonitor.h"
@@ -201,25 +201,25 @@ CurrentMonitor progMonitor(CURRENT_MONITOR_PIN_PROG,"<p3>");  // create monitor 
 ///////////////////////////////////////////////////////////////////////////////
 
 void loop(){
-  
+
   SerialCommand::process();              // check for, and process, and new serial commands
-  
-  if(CurrentMonitor::checkTime()){      // if sufficient time has elapsed since last update, check current draw on Main and Program Tracks 
+
+  if(CurrentMonitor::checkTime()){      // if sufficient time has elapsed since last update, check current draw on Main and Program Tracks
     mainMonitor.check();
     progMonitor.check();
   }
 
   Sensor::check();    // check sensors for activate/de-activate
-  
+
 } // loop
 
 ///////////////////////////////////////////////////////////////////////////////
 // INITIAL SETUP
 ///////////////////////////////////////////////////////////////////////////////
 
-void setup(){  
+void setup(){
 
-  Serial.begin(115200);            // configure serial interface
+  Serial.begin(38400);            // configure serial interface
   Serial.flush();
 
   #ifdef SDCARD_CS
@@ -234,7 +234,7 @@ void setup(){
   if(!digitalRead(A5))
     showConfiguration();
 
-  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
+  Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
   Serial.print(MOTOR_SHIELD_NAME);
@@ -254,7 +254,7 @@ void setup(){
     #endif
     INTERFACE.begin();
   #endif
-             
+
   SerialCommand::init(&mainRegs, &progRegs, &mainMonitor);   // create structure to read and parse commands from serial line
 
   Serial.print("<N");
@@ -267,9 +267,9 @@ void setup(){
     Serial.print(Ethernet.localIP());
     Serial.print(">");
   #endif
-  
+
   // CONFIGURE TIMER_1 TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC1B INTERRUPT PINS
-  
+
   // Direction Pin for Motor Shield Channel A - MAIN OPERATIONS TRACK
   // Controlled by Arduino 16-bit TIMER 1 / OC1B Interrupt Pin
   // Values for 16-bit OCR1A and OCR1B registers calibrated for 1:1 prescale at 16 MHz clock frequency
@@ -297,20 +297,20 @@ void setup(){
   bitClear(TCCR1B,CS12);    // set Timer 1 prescale=1
   bitClear(TCCR1B,CS11);
   bitSet(TCCR1B,CS10);
-    
+
   OCR1A=DCC_ONE_BIT_TOTAL_DURATION_TIMER1;
   OCR1B=DCC_ONE_BIT_PULSE_DURATION_TIMER1;
-  
+
   pinMode(SIGNAL_ENABLE_PIN_MAIN,OUTPUT);   // master enable for motor channel A
 
-  mainRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1    
-      
-  bitSet(TIMSK1,OCIE1B);    // enable interrupt vector for Timer 1 Output Compare B Match (OCR1B)    
+  mainRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1
+
+  bitSet(TIMSK1,OCIE1B);    // enable interrupt vector for Timer 1 Output Compare B Match (OCR1B)
 
   // CONFIGURE EITHER TIMER_0 (UNO) OR TIMER_3 (MEGA) TO OUTPUT 50% DUTY CYCLE DCC SIGNALS ON OC0B (UNO) OR OC3B (MEGA) INTERRUPT PINS
-  
+
 #ifdef ARDUINO_AVR_UNO      // Configuration for UNO
-  
+
   // Directon Pin for Motor Shield Channel B - PROGRAMMING TRACK
   // Controlled by Arduino 8-bit TIMER 0 / OC0B Interrupt Pin
   // Values for 8-bit OCR0A and OCR0B registers calibrated for 1:64 prescale at 16 MHz clock frequency
@@ -321,7 +321,7 @@ void setup(){
 
   #define DCC_ONE_BIT_TOTAL_DURATION_TIMER0 28
   #define DCC_ONE_BIT_PULSE_DURATION_TIMER0 14
-  
+
   pinMode(DIRECTION_MOTOR_CHANNEL_PIN_B,INPUT);      // ensure this pin is not active! Direction will be controlled by DCC SIGNAL instead (below)
   digitalWrite(DIRECTION_MOTOR_CHANNEL_PIN_B,LOW);
 
@@ -330,21 +330,21 @@ void setup(){
   bitSet(TCCR0A,WGM00);     // set Timer 0 to FAST PWM, with TOP=OCR0A
   bitSet(TCCR0A,WGM01);
   bitSet(TCCR0B,WGM02);
-     
+
   bitSet(TCCR0A,COM0B1);    // set Timer 0, OC0B (pin 5) to inverting toggle (actual direction is arbitrary)
   bitSet(TCCR0A,COM0B0);
 
   bitClear(TCCR0B,CS02);    // set Timer 0 prescale=64
   bitSet(TCCR0B,CS01);
   bitSet(TCCR0B,CS00);
-    
+
   OCR0A=DCC_ONE_BIT_TOTAL_DURATION_TIMER0;
   OCR0B=DCC_ONE_BIT_PULSE_DURATION_TIMER0;
-  
+
   pinMode(SIGNAL_ENABLE_PIN_PROG,OUTPUT);   // master enable for motor channel B
 
-  progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1    
-      
+  progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1
+
   bitSet(TIMSK0,OCIE0B);    // enable interrupt vector for Timer 0 Output Compare B Match (OCR0B)
 
 #else      // Configuration for MEGA
@@ -376,16 +376,16 @@ void setup(){
   bitClear(TCCR3B,CS32);    // set Timer 3 prescale=1
   bitClear(TCCR3B,CS31);
   bitSet(TCCR3B,CS30);
-    
+
   OCR3A=DCC_ONE_BIT_TOTAL_DURATION_TIMER3;
   OCR3B=DCC_ONE_BIT_PULSE_DURATION_TIMER3;
-  
+
   pinMode(SIGNAL_ENABLE_PIN_PROG,OUTPUT);   // master enable for motor channel B
 
-  progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1    
-      
-  bitSet(TIMSK3,OCIE3B);    // enable interrupt vector for Timer 3 Output Compare B Match (OCR3B)    
-  
+  progRegs.loadPacket(1,RegisterList::idlePacket,2,0);    // load idle packet into register 1
+
+  bitSet(TIMSK3,OCIE3B);    // enable interrupt vector for Timer 3 Output Compare B Match (OCR3B)
+
 #endif
 
 } // setup
@@ -394,7 +394,7 @@ void setup(){
 // DEFINE THE INTERRUPT LOGIC THAT GENERATES THE DCC SIGNAL
 ///////////////////////////////////////////////////////////////////////////////
 
-// The code below will be called every time an interrupt is triggered on OCNB, where N can be 0 or 1. 
+// The code below will be called every time an interrupt is triggered on OCNB, where N can be 0 or 1.
 // It is designed to read the current bit of the current register packet and
 // updates the OCNA and OCNB counters of Timer-N to values that will either produce
 // a long (200 microsecond) pulse, or a short (116 microsecond) pulse, which respectively represent
@@ -424,13 +424,13 @@ void setup(){
 
 #define DCC_SIGNAL(R,N) \
   if(R.currentBit==R.currentReg->activePacket->nBits){    /* IF no more bits in this DCC Packet */ \
-    R.currentBit=0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ \   
+    R.currentBit=0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ \
     if(R.nRepeat>0 && R.currentReg==R.reg){               /*   IF current Register is first Register AND should be repeated */ \
       R.nRepeat--;                                        /*     decrement repeat count; result is this same Packet will be repeated */ \
     } else if(R.nextReg!=NULL){                           /*   ELSE IF another Register has been updated */ \
       R.currentReg=R.nextReg;                             /*     update currentReg to nextReg */ \
       R.nextReg=NULL;                                     /*     reset nextReg to NULL */ \
-      R.tempPacket=R.currentReg->activePacket;            /*     flip active and update Packets */ \        
+      R.tempPacket=R.currentReg->activePacket;            /*     flip active and update Packets */ \
       R.currentReg->activePacket=R.currentReg->updatePacket; \
       R.currentReg->updatePacket=R.tempPacket; \
     } else{                                               /*   ELSE simply move to next Register */ \
@@ -446,10 +446,10 @@ void setup(){
   } else{                                                                              /* ELSE it is a ZERO */ \
     OCR ## N ## A=DCC_ZERO_BIT_TOTAL_DURATION_TIMER ## N;                              /*   set OCRA for timer N to full cycle duration of DCC ZERO bit */ \
     OCR ## N ## B=DCC_ZERO_BIT_PULSE_DURATION_TIMER ## N;                              /*   set OCRB for timer N to half cycle duration of DCC ZERO bit */ \
-  }                                                                                    /* END-ELSE */ \ 
-                                                                                       \ 
-  R.currentBit++;                                         /* point to next bit in current Packet */  
-  
+  }                                                                                    /* END-ELSE */ \
+                                                                                       \
+  R.currentBit++;                                         /* point to next bit in current Packet */
+
 ///////////////////////////////////////////////////////////////////////////////
 
 // NOW USE THE ABOVE MACRO TO CREATE THE CODE FOR EACH INTERRUPT
@@ -475,7 +475,7 @@ ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER
 
 ///////////////////////////////////////////////////////////////////////////////
 // PRINT CONFIGURATION INFO TO SERIAL PORT REGARDLESS OF INTERFACE TYPE
-// - ACTIVATED ON STARTUP IF SHOW_CONFIG_PIN IS TIED HIGH 
+// - ACTIVATED ON STARTUP IF SHOW_CONFIG_PIN IS TIED HIGH
 
 void showConfiguration(){
 
@@ -495,7 +495,7 @@ void showConfiguration(){
 
   Serial.print("\n\nMOTOR SHIELD: ");
   Serial.print(MOTOR_SHIELD_NAME);
-  
+
   Serial.print("\n\nDCC SIG MAIN: ");
   Serial.print(DCC_SIGNAL_PIN_MAIN);
   Serial.print("\n   DIRECTION: ");
@@ -520,7 +520,7 @@ void showConfiguration(){
   Serial.print(EEStore::eeStore->data.nSensors);
   Serial.print("\n     OUTPUTS: ");
   Serial.print(EEStore::eeStore->data.nOutputs);
-  
+
   Serial.print("\n\nINTERFACE:    ");
   #if COMM_TYPE == 0
     Serial.print("SERIAL");
@@ -540,8 +540,8 @@ void showConfiguration(){
       Ethernet.begin(mac,IP_ADDRESS);           // Start networking using STATIC IP Address
     #else
       Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
-    #endif     
-    
+    #endif
+
     Serial.print(Ethernet.localIP());
 
     #ifdef IP_ADDRESS
@@ -549,7 +549,7 @@ void showConfiguration(){
     #else
       Serial.print(" (DHCP)");
     #endif
-  
+
   #endif
   Serial.print("\n\nPROGRAM HALTED - PLEASE RESTART ARDUINO");
 
@@ -557,7 +557,3 @@ void showConfiguration(){
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-
-
-
