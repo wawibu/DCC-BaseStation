@@ -219,7 +219,7 @@ void loop(){
 
 void setup(){
 
-  Serial.begin(38400);            // configure serial interface
+  Serial.begin(115200);            // configure serial interface
   Serial.flush();
 
   #ifdef SDCARD_CS
