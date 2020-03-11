@@ -24,6 +24,7 @@
                 "/Users/WaWiBu/.platformio/lib/ArduinoJson_ID64/src",
                 "/Users/WaWiBu/.platformio/lib/BME280_ID901/src",
                 "/Users/WaWiBu/.platformio/lib/DFRobotDFPlayerMini_ID1308",
+                "/Users/WaWiBu/.platformio/lib/ESP32WebServer_ID2007/src",
                 "/Users/WaWiBu/.platformio/lib/ESPAsyncUDP_ID359/src",
                 "/Users/WaWiBu/.platformio/lib/EspSoftwareSerial_ID168/src",
                 "/Users/WaWiBu/.platformio/lib/JPEGDecoder_ID1467/src",
@@ -66,6 +67,7 @@
                     "/Users/WaWiBu/.platformio/lib/ArduinoJson_ID64/src",
                     "/Users/WaWiBu/.platformio/lib/BME280_ID901/src",
                     "/Users/WaWiBu/.platformio/lib/DFRobotDFPlayerMini_ID1308",
+                    "/Users/WaWiBu/.platformio/lib/ESP32WebServer_ID2007/src",
                     "/Users/WaWiBu/.platformio/lib/ESPAsyncUDP_ID359/src",
                     "/Users/WaWiBu/.platformio/lib/EspSoftwareSerial_ID168/src",
                     "/Users/WaWiBu/.platformio/lib/JPEGDecoder_ID1467/src",
@@ -90,7 +92,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=40100",
+                "PLATFORMIO=40201",
                 "ARDUINO_AVR_UNO",
                 "F_CPU=16000000L",
                 "ARDUINO_ARCH_AVR",
@@ -101,7 +103,11 @@
             "intelliSenseMode": "clang-x64",
             "cStandard": "c11",
             "cppStandard": "c++11",
-            "compilerPath": "\"/Users/WaWiBu/.platformio/packages/toolchain-atmelavr/bin/avr-gcc\" -mmcu=atmega328p"
+            "compilerPath": "/Users/WaWiBu/.platformio/packages/toolchain-atmelavr/bin/avr-gcc",
+            "compilerArgs": [
+                "-mmcu=atmega328p",
+                ""
+            ]
         }
     ],
     "version": 4
